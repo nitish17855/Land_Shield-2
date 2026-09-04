@@ -5,6 +5,8 @@ const morgan = require("morgan");
 const nodemailer = require("nodemailer");
 
 const cadastralRoutes = require("./src/routes/cadastralRoutes");
+const authRoutes = require("./src/routes/authRoutes");
+const { initDb } = require("./src/db");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -65,18 +67,30 @@ ${message || "N/A"}
   }
 });
 
-// Mount Cadastral / Land Record routes
+// Mount Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/cadastral", cadastralRoutes);
 
-// Health check endpoint
-app.get("/api/health", (req, res) => {
-  res.json({ status: "HEALTHY", service: "LandShield Backend API", timestamp: new Date().toISOString() });
+// Health check & Ping endpoints (Render keep-awake / UptimeRobot)
+app.get(["/", "/health", "/api/health"], (req, res) => {
+  res.status(200).json({
+    status: "HEALTHY",
+    message: "LandShield Backend is awake and active",
+    service: "LandShield Backend API",
+    uptime: `${Math.floor(process.uptime())} seconds`,
+    timestamp: new Date().toISOString(),
+  });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`===================================================`);
   console.log(`LandShield Backend running on http://localhost:${PORT}`);
+  console.log(`Auth API:      http://localhost:${PORT}/api/auth`);
   console.log(`Cadastral API: http://localhost:${PORT}/api/cadastral`);
   console.log(`Contact API:   http://localhost:${PORT}/api/contact`);
+  console.log(`Health Ping:   http://localhost:${PORT}/health`);
   console.log(`===================================================`);
+  
+  // Initialize PostgreSQL database schema
+  await initDb();
 });

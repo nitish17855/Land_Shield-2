@@ -10,9 +10,9 @@ export default function Header({ onContactClick }) {
 
   const handleDemoClick = () => {
     if (isAuthenticated) {
-      navigate('/demo');
+      navigate('/karnataka/survey-documents');
     } else {
-      navigate('/signin?redirect=/demo');
+      navigate('/signin?redirect=/karnataka/survey-documents');
     }
   };
 
@@ -41,7 +41,7 @@ export default function Header({ onContactClick }) {
         {isAuthenticated ? (
           <div className="flex items-center gap-3">
             <Link
-              to="/demo"
+              to="/karnataka/survey-documents"
               className="px-4 py-2 text-xs font-semibold text-landgreen-900 bg-landgreen-50 border border-landgreen-200 rounded-full hover:bg-landgreen-100 transition flex items-center gap-1.5"
             >
               <Compass size={14} />

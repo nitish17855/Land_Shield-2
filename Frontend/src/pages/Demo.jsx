@@ -23,7 +23,7 @@ export default function Demo() {
   // Check auth - if not logged in, redirect to sign in
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/signin?redirect=/demo');
+      navigate('/signin?redirect=/karnataka/survey-documents');
     } else {
       // Auto-load initial demo coordinate
       handleQueryParcel({ lat: 13.2450, lng: 77.7125 });
@@ -75,7 +75,7 @@ export default function Demo() {
             <ChevronRight size={14} className="text-gray-400" />
             <span className="text-gray-700">Karnataka</span>
             <ChevronRight size={14} className="text-gray-400" />
-            <span className="text-landgreen-900 font-semibold">Find My Survey Number</span>
+            <span className="text-landgreen-900 font-semibold">Survey Documents</span>
           </div>
         </div>
 
@@ -86,8 +86,8 @@ export default function Demo() {
           </button>
 
           <div className="hidden sm:flex items-center gap-4 text-xs font-medium text-gray-600">
-            <a href="#orders" className="hover:text-landgreen-900">Orders</a>
-            <a href="#support" className="hover:text-landgreen-900">Get Support</a>
+            <Link to="/pricing" className="hover:text-landgreen-900">Plans</Link>
+            <a href="mailto:support@landshield.in" className="hover:text-landgreen-900">Support</a>
           </div>
 
           <div className="flex items-center gap-2 pl-3 border-l border-gray-200">

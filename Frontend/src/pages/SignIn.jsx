@@ -1,47 +1,94 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Shield, CheckCircle, ArrowRight, Lock, Mail, User } from 'lucide-react';
+import { Shield, Lock, Mail, User, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 
 export default function SignIn() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, register, googleLogin } = useAuth();
 
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
-  const redirectPath = searchParams.get('redirect') || '/demo';
+  const redirectPath = searchParams.get('redirect') || '/karnataka/survey-documents';
 
-  const handleAuthSubmit = (e) => {
+  const handleAuthSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
     setIsLoading(true);
 
-    setTimeout(() => {
-      login({
-        name: name || (isSignUp ? 'New Member' : 'Nitish Tripathi'),
-        email: email || 'user@landshield.in',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=120&auto=format&fit=crop'
-      });
+    try {
+      if (isSignUp) {
+        if (!name.trim()) {
+          setErrorMessage('Please enter your full name.');
+          setIsLoading(false);
+          return;
+        }
+        if (password.length < 6) {
+          setErrorMessage('Password must be at least 6 characters.');
+          setIsLoading(false);
+          return;
+        }
+
+        const res = await register(name, email, password);
+        if (res.success) {
+          setSuccessMessage('Account created successfully! Redirecting...');
+          setTimeout(() => {
+            navigate(redirectPath);
+          }, 800);
+        } else {
+          setErrorMessage(res.error || 'Failed to create account.');
+        }
+      } else {
+        const res = await login(email, password);
+        if (res.success) {
+          setSuccessMessage('Signed in successfully! Redirecting...');
+          setTimeout(() => {
+            navigate(redirectPath);
+          }, 800);
+        } else {
+          setErrorMessage(res.error || 'Invalid email or password.');
+        }
+      }
+    } catch (err) {
+      setErrorMessage(err.message || 'An unexpected error occurred.');
+    } finally {
       setIsLoading(false);
-      navigate(redirectPath);
-    }, 600);
+    }
   };
 
-  const handleOAuthLogin = (provider) => {
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setErrorMessage('');
+    setSuccessMessage('');
     setIsLoading(true);
-    setTimeout(() => {
-      login({
-        name: provider === 'Google' ? 'Google User' : 'LinkedIn Executive',
-        email: `${provider.toLowerCase()}user@landshield.in`,
-        provider
-      });
+
+    try {
+      const res = await googleLogin(credentialResponse.credential);
+      if (res.success) {
+        setSuccessMessage('Google authentication successful! Redirecting...');
+        setTimeout(() => {
+          navigate(redirectPath);
+        }, 800);
+      } else {
+        setErrorMessage(res.error || 'Google login failed.');
+      }
+    } catch (err) {
+      setErrorMessage(err.message || 'Failed to authenticate with Google.');
+    } finally {
       setIsLoading(false);
-      navigate(redirectPath);
-    }, 600);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setErrorMessage('Google Sign-In was cancelled or failed. Please try again.');
   };
 
   return (
@@ -60,7 +107,11 @@ export default function SignIn() {
           {isSignUp ? 'Already have an account?' : "Don't have an account yet?"}{' '}
           <button
             type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
+            onClick={() => {
+              setIsSignUp(!isSignUp);
+              setErrorMessage('');
+              setSuccessMessage('');
+            }}
             className="font-semibold text-landgreen-700 hover:text-landgreen-900 underline underline-offset-4 ml-1"
           >
             {isSignUp ? 'Sign In instead' : 'Create an account'}
@@ -70,22 +121,23 @@ export default function SignIn() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-6 sm:px-10 shadow-xl rounded-3xl border border-gray-100">
-          
-          {/* Quick Demo Access banner */}
-          <div className="mb-6 p-3.5 bg-landgreen-50 border border-landgreen-100 rounded-2xl flex items-center justify-between">
-            <div className="text-xs text-landgreen-900">
-              <span className="font-bold block">Instant Demo Access</span>
-              <span>Test LandShield Karnataka Cadastral Explorer</span>
-            </div>
-            <button
-              onClick={() => handleOAuthLogin('Demo')}
-              className="px-3 py-1.5 bg-landgreen-900 hover:bg-landgreen-800 text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition shadow-sm"
-            >
-              <span>Quick Login</span>
-              <ArrowRight size={13} />
-            </button>
-          </div>
 
+          {/* Feedback Alert Messages */}
+          {errorMessage && (
+            <div className="mb-5 p-3.5 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2.5 text-xs text-red-700">
+              <AlertCircle size={16} className="shrink-0 mt-0.5" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
+          {successMessage && (
+            <div className="mb-5 p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-2.5 text-xs text-emerald-800">
+              <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
+              <span>{successMessage}</span>
+            </div>
+          )}
+
+          {/* Email & Password Form */}
           <form className="space-y-4" onSubmit={handleAuthSubmit}>
             {isSignUp && (
               <div>
@@ -171,51 +223,29 @@ export default function SignIn() {
             </button>
           </form>
 
+          {/* Social OAuth Divider */}
           <div className="mt-6">
             <div className="relative flex items-center justify-center">
               <div className="w-full border-t border-gray-200" />
               <span className="px-3 bg-white text-xs text-gray-400 uppercase tracking-widest font-medium absolute">
-                Or continue with
+                Or continue with Google
               </span>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => handleOAuthLogin('Google')}
-                className="w-full inline-flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-200 rounded-xl shadow-sm bg-white text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path
-                    fill="#EA4335"
-                    d="M12 5c1.54 0 2.94.55 4.04 1.46l3.02-3.02C17.2 1.7 14.77 1 12 1 7.42 1 3.48 3.59 1.54 7.36l3.66 2.84C6.07 7.41 8.78 5 12 5z"
-                  />
-                  <path
-                    fill="#4285F4"
-                    d="M23.49 12.28c0-.8-.07-1.57-.2-2.28H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58l3.71 2.88c2.16-2 3.71-4.94 3.71-8.69z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.2 14.8c-.25-.74-.39-1.54-.39-2.37s.14-1.63.39-2.37L1.54 7.22C.56 9.17 0 11.02 0 12.43s.56 3.26 1.54 5.21l3.66-2.84z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23.86c3.24 0 5.95-1.08 7.93-2.93l-3.71-2.88c-1.08.73-2.46 1.16-4.22 1.16-3.22 0-5.93-2.41-6.8-5.7L1.54 16.35C3.48 20.27 7.42 23.86 12 23.86z"
-                  />
-                </svg>
-                <span>Google</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleOAuthLogin('LinkedIn')}
-                className="w-full inline-flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-200 rounded-xl shadow-sm bg-white text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"
-              >
-                <svg className="w-4 h-4 text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76a1.64 1.64 0 1 0 0-3.28 1.64 1.64 0 0 0 0 3.28M7.86 18.5V10.13H5.07V18.5h2.79z" />
-                </svg>
-                <span>LinkedIn</span>
-              </button>
+            {/* Real Google OAuth Button */}
+            <div className="mt-6 flex justify-center">
+              <div className="w-full flex justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  useOneTap={false}
+                  theme="outline"
+                  size="large"
+                  shape="rectangular"
+                  text={isSignUp ? 'signup_with' : 'signin_with'}
+                  width="100%"
+                />
+              </div>
             </div>
           </div>
 

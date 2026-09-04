@@ -8,9 +8,9 @@ export default function Hero() {
 
   const handleDemoClick = () => {
     if (isAuthenticated) {
-      navigate('/demo');
+      navigate('/karnataka/survey-documents');
     } else {
-      navigate('/signin?redirect=/demo');
+      navigate('/signin?redirect=/karnataka/survey-documents');
     }
   };
 

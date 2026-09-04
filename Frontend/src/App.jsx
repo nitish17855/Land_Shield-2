@@ -12,7 +12,7 @@ function AppContent() {
   const [isContactOpen, setIsContactOpen] = useState(false);
   const location = useLocation();
 
-  const isSaaSPage = location.pathname.startsWith('/demo');
+  const isSaaSPage = location.pathname.startsWith('/karnataka') || location.pathname.startsWith('/demo');
 
   return (
     <div className="min-h-screen font-sans bg-[#FAFAFA] text-gray-900 overflow-x-hidden">
@@ -22,6 +22,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Home onContactClick={() => setIsContactOpen(true)} />} />
           <Route path="/signin" element={<SignIn />} />
+          <Route path="/karnataka/survey-documents" element={<Demo />} />
           <Route path="/demo" element={<Demo />} />
           <Route path="/pricing" element={<PricingPage />} />
         </Routes>
