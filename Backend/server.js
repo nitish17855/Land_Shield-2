@@ -11,8 +11,19 @@ const { initDb } = require("./src/db");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Configure CORS from environment variable
+const corsOriginEnv = process.env.CORS_ORIGIN || "*";
+const corsOrigins = corsOriginEnv.includes(",")
+  ? corsOriginEnv.split(",").map((origin) => origin.trim())
+  : corsOriginEnv;
+
 // Middleware
-app.use(cors({ origin: '*' }));
+app.use(
+  cors({
+    origin: corsOrigins,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(morgan('dev'));
 
