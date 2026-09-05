@@ -243,7 +243,6 @@ export default function SignIn() {
                   size="large"
                   shape="rectangular"
                   text={isSignUp ? 'signup_with' : 'signin_with'}
-                  width="100%"
                 />
               </div>
             </div>
