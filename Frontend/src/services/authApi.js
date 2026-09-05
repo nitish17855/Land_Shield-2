@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
-  ? `${import.meta.env.VITE_API_BASE_URL}/api/auth` 
-  : '/api/auth';
+const RAW_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+const API_BASE_URL = RAW_BASE ? `${RAW_BASE}/api/auth` : '/api/auth';
 
 /**
  * Helper to get authorization headers

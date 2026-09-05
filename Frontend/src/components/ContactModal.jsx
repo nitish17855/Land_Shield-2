@@ -9,7 +9,9 @@ export default function ContactModal({ onClose }) {
     setStatus('loading');
     
     try {
-      const res = await fetch('http://localhost:5000/api/contact', {
+      const rawBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+      const endpoint = rawBase ? `${rawBase}/api/contact` : '/api/contact';
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

@@ -1,6 +1,6 @@
 import axios from 'axios';
-
-const API_BASE_URL = '/api/cadastral';
+const RAW_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+const API_BASE_URL = RAW_BASE ? `${RAW_BASE}/api/cadastral` : '/api/cadastral';
 
 /**
  * Identifies cadastral parcel at clicked coordinates (lat, lng)
